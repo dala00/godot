@@ -62,6 +62,7 @@ NSMutableDictionary *pending_transactions = [NSMutableDictionary dictionary];
 InAppStore *InAppStore::instance = NULL;
 
 void InAppStore::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("init"), &InAppStore::init);
 	ClassDB::bind_method(D_METHOD("request_product_info"), &InAppStore::request_product_info);
 	ClassDB::bind_method(D_METHOD("restore_purchases"), &InAppStore::restore_purchases);
 	ClassDB::bind_method(D_METHOD("purchase"), &InAppStore::purchase);
@@ -121,12 +122,19 @@ void InAppStore::_bind_methods() {
 	};
 	ret["invalid_ids"] = invalid_ids;
 
-	InAppStore::get_singleton()->_post_event(ret);
+	// InAppStore::get_singleton()->_post_event(ret);
+	int instanceId = InAppStore::get_singleton()->get_instance_id();
+    Object *obj = ObjectDB::get_instance(instanceId);
+    obj->call_deferred("_on_product_info_received", ret);
 
 	[request release];
 };
 
 @end
+
+void InAppStore::init(int instance_id) {
+	instanceId = instance_id;
+}
 
 Error InAppStore::request_product_info(Variant p_params) {
 
@@ -305,6 +313,10 @@ void InAppStore::_record_purchase(String product_id) {
 	[[NSUserDefaults standardUserDefaults] setBool:YES forKey:key];
 	[[NSUserDefaults standardUserDefaults] synchronize];
 };
+
+int InAppStore::get_instance_id() {
+	return instanceId;
+}
 
 InAppStore *InAppStore::get_singleton() {
 

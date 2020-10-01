@@ -44,7 +44,11 @@ class InAppStore : public Object {
 
 	List<Variant> pending_events;
 
+	int instanceId;
+
 public:
+	void init(int instance_id);
+
 	Error request_product_info(Variant p_params);
 	Error restore_purchases();
 	Error purchase(Variant p_params);
@@ -56,6 +60,8 @@ public:
 
 	void _post_event(Variant p_event);
 	void _record_purchase(String product_id);
+
+	int get_instance_id();
 
 	static InAppStore *get_singleton();
 
