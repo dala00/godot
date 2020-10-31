@@ -363,3 +363,6 @@ compile_commands.json
 
 # https://clangd.llvm.org/ cache folder
 .clangd/
+
+/modules/admob
+/modules/review

@@ -179,6 +179,7 @@ Error InAppStore::restore_purchases() {
 - (void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray *)transactions {
 
 	printf("transactions updated!\n");
+	int instanceId = InAppStore::get_singleton()->get_instance_id();
 	for (SKPaymentTransaction *transaction in transactions) {
 
 		switch (transaction.transactionState) {
@@ -230,7 +231,12 @@ Error InAppStore::restore_purchases() {
 				receipt_ret["sdk"] = sdk_version;
 				ret["receipt"] = receipt_ret;
 
-				InAppStore::get_singleton()->_post_event(ret);
+				if (instanceId) {
+					Object *obj = ObjectDB::get_instance(instanceId);
+					obj->call_deferred("_on_purchased", ret);
+				} else {
+					InAppStore::get_singleton()->_post_event(ret);
+				}
 
 				if (auto_finish_transactions) {
 					[[SKPaymentQueue defaultQueue] finishTransaction:transaction];
@@ -247,7 +253,12 @@ Error InAppStore::restore_purchases() {
 				ret["result"] = "error";
 				ret["product_id"] = pid;
 				ret["error"] = String::utf8([transaction.error.localizedDescription UTF8String]);
-				InAppStore::get_singleton()->_post_event(ret);
+				if (instanceId) {
+					Object *obj = ObjectDB::get_instance(instanceId);
+					obj->call_deferred("_on_purchase_failed", ret);
+				} else {
+					InAppStore::get_singleton()->_post_event(ret);
+				}
 				[[SKPaymentQueue defaultQueue] finishTransaction:transaction];
 			} break;
 			case SKPaymentTransactionStateRestored: {
